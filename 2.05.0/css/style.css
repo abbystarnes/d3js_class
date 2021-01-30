@@ -1,0 +1,15 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: 100px;
+  grid-template-rows: repeat(2, 100px);
+  grid-row-gap: 1ch;
+  grid-auto-flow: column;
+  grid-column-gap: 1ch;
+  border: 2px dashed teal;
+}
+
+.grid__item {
+  background: lightgrey;
+  border: 1px solid green;
+}
