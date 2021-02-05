@@ -23,7 +23,7 @@ d3.csv("data/revenues.csv").then(data => {
     .range([0, WIDTH])
     
   const y = d3.scaleLinear()
-  .domain( [0, d3.max(revenues)])
+  .domain( [ 0, d3.max(revenues)])
   .range([0, HEIGHT])
 
   const g = d3.select("#chart-area").append("svg")
@@ -36,9 +36,9 @@ d3.csv("data/revenues.csv").then(data => {
   const rects = g.selectAll("rect").data(data)
 
   rects.enter().append("rect")
-    .attr('x', (d, i) => (i * 55) + 50)
+    .attr('x', (d, i) => (i * (WIDTH / data.length)) + 5)
     .attr('y', (d, i) => HEIGHT - y(d.revenue))
-    .attr('width',  35)
+    .attr('width',  (WIDTH / data.length) -5 )
     .attr('height', (d, i) => y(d.revenue))
     .attr("fill",  (d, i) => d3.interpolateYlGn(y(d.revenue)/HEIGHT));
     
@@ -53,6 +53,7 @@ d3.csv("data/revenues.csv").then(data => {
     .tickValues(data.map(d => d.month))
     g.append('g')
     .call(bottomAxis)
+    .attr("transform", `translate(0, ${HEIGHT})`)
 })
 
 //.attr("transform", `translate(0, ${HEIGHT})`)
