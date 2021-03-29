@@ -17,7 +17,7 @@ const g = svg.append("g")
   .attr("transform", `translate(${MARGIN.LEFT}, ${MARGIN.TOP})`)
 
 const x = d3.scaleLog()
-	.domain([100, 150000])
+	.domain([100, 150_000])
 	.range([0, WIDTH])
 
 const y = d3.scaleLinear()
@@ -26,7 +26,18 @@ const y = d3.scaleLinear()
 
 d3.json("data/data.json").then(function(data) {
 	data = data[0].countries.filter(country => country.income !== null && country.life_exp !== null)
-	console.log(data)
+
+	 // Add dots
+	 svg.append('g')
+	 .selectAll("dot")
+	 .data(data)
+	 .enter()
+	 .append("circle")
+		 .attr("cx", function (d) { return x(d.income); } )
+		 .attr("cy", function (d) { return y(d.life_exp); } )
+		 .attr("r", function (d) { return (d.population / 10_000_000 )})
+		 .style("fill", "#69b3a2")
+
 })
 
 const yAxisCall = d3.axisLeft(y)
@@ -35,14 +46,23 @@ const yAxisCall = d3.axisLeft(y)
 
 g.append('g')
 	.attr("class", "y axis")
+	.text('X Axis Label')
 	.call(yAxisCall)
 
+
 const xAxisCall = d3.axisBottom(x)
-	.tickValues([400, 4000, 40000])
+	.tickValues([400, 4000, 40_000])
 	.tickFormat(d => d);
 
 g.append("g")
 	.attr("class", "x axis")
 	.attr("transform", `translate(0, ${HEIGHT})`)
+	.text('X Axis Label')
 	.call(xAxisCall)
 
+
+const update = function() {
+	console.log('updating');
+}
+
+d3.interval(update, 1000)
