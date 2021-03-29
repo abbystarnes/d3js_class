@@ -36,8 +36,6 @@ d3.csv("data/revenues.csv").then(data => {
     .domain( [ 0, d3.max(revenues)])
     .range([HEIGHT, 0])
 
-  console.log(data, 'data');
-  
   const rects = g.selectAll("rect").data(data)
 
   rects.enter().append("rect")
@@ -45,7 +43,7 @@ d3.csv("data/revenues.csv").then(data => {
     .attr('y', (d, i) => y(d.revenue))
     .attr('width',  x.bandwidth)
     .attr('height', (d, i) => HEIGHT - y(d.revenue))
-    .attr("fill",  "grey");
+    .attr("fill",  (d, i) => d3.interpolateYlGn(1- y(d.revenue)/HEIGHT));
     
   const yAxisCall = d3.axisLeft(y)
     .ticks(5)

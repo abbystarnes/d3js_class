@@ -1,0 +1,16 @@
+#chart-area {
+	margin-left: auto;
+	margin-right: auto;
+	display: block;
+	border: 2px solid pink;
+	background-color: aliceblue;
+}
+
+#logo {
+	height:50px;
+}
+
+.navbar-brand {
+	height: 60px;
+	padding: 5px 0px;
+}
