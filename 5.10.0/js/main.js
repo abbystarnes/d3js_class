@@ -4,7 +4,7 @@
 *    Project 2 - Gapminder Clone
 */
 
-const MARGIN = { LEFT: 50, RIGHT: 50, TOP: 50, BOTTOM: 50 };
+const MARGIN = { LEFT: 60, RIGHT: 60, TOP: 60, BOTTOM: 60 };
 const WIDTH = 600 - MARGIN.LEFT - MARGIN.RIGHT;
 const HEIGHT = 400 - MARGIN.TOP - MARGIN.BOTTOM;
 let counter = 0;
@@ -57,7 +57,7 @@ d3.json('data/data.json').then((json) => {
 		.call(yAxisCall)
 
 	const xAxisCall = d3.axisBottom(x)
-		.tickValues([400, 4000, 40_000])
+		.tickValues([400, 4_000, 40_000])
 		.tickFormat(d => d);    
 
 	g.append("g")
@@ -67,8 +67,26 @@ d3.json('data/data.json').then((json) => {
 		.call(xAxisCall)
 
 	g.append('text')
-		.style("text-anchor", "bottom")
-		.text("Value");
+		.attr("class", "xLabel")
+		.attr('x', (WIDTH/2))
+		.attr('y', HEIGHT + 45)
+		.attr('text-anchor', 'middle')
+		.text("GDP per capita");
+
+	g.append('text')
+		.attr("class", "yLabel")
+		.attr('x', - (HEIGHT / 2))
+		.attr('y', -35)
+		.attr('text-anchor', 'middle')
+		.attr('transform', 'rotate(-90)')
+		.text("Life Expectancy");
+	
+		g.append('text')
+		.attr("class", "yearLabel")
+		.attr('x', (WIDTH))
+		.attr('y', HEIGHT + 45)
+		.attr('text-anchor', 'end')
+		.text(json[0].year);
 
 	const update = () => {
 		const yearArray = json[counter].countries;
@@ -80,14 +98,26 @@ d3.json('data/data.json').then((json) => {
 		const circles = g.selectAll("circle")
 			.data(cleanedYearData, matchKey)
 
+		const year = g.select('text').classed('yearLabel', true);
+		
 		// EXIT
 		circles.exit().remove();
+
+		year.exit().remove();
 
 		// UPDATE
 		circles
 			.attr("cx", d => x(d.income))
 			.attr("cy", d => y(d.life_exp))
 			.attr("r", d =>  r(getRadius(d.population)))
+
+		year
+			.attr("class", "yearLabel")
+			.attr('x', (WIDTH))
+			.attr('y', HEIGHT + 45)
+			.attr('text-anchor', 'end')
+			.text(json[counter].year)
+
 		// ENTER
 		circles.enter()
 			.append("circle")
@@ -96,9 +126,17 @@ d3.json('data/data.json').then((json) => {
 			.attr("cy", d => y(d.life_exp))
 			.attr("r", d =>  r(getRadius(d.population)))
 			.style("fill", d =>  colorScale(d.continent))
+		
+		year.enter()
+			.attr("class", "yearLabel")
+			.attr('x', (WIDTH))
+			.attr('y', HEIGHT + 45)
+			.attr('text-anchor', 'end')
+			.text(json[0].year);
+
 
 		// if (counter > 10) timer.stop();
-		if (counter > json.length - 1) {
+		if (counter >= json.length - 1) {
 			counter = 0;
 		};
 
