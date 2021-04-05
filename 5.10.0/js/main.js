@@ -9,7 +9,7 @@ const WIDTH = 600 - MARGIN.LEFT - MARGIN.RIGHT;
 const HEIGHT = 400 - MARGIN.TOP - MARGIN.BOTTOM;
 let counter = 0;
 let colors = ["#1192e8", "#ee538b", "#009d9a", "#fa4d56"];
-const colorScale = d3.scaleOrdinal().domain(['europe', 'asia', 'americas', 'africa']).range(colors);
+const colorScale = d3.scaleOrdinal(colors);
 //   .range(colors)
 
 
@@ -36,16 +36,16 @@ d3.json('data/data.json').then((json) => {
 	const firstYearPopulationMax = d3.max(firstYearPopulations);
 
 	const x = d3.scaleLog()
-		.domain([100, 150000])
+		.domain([142, 150000])
 		.range([0, WIDTH])
 	
 	const y = d3.scaleLinear()
 		.domain([0, 90])
 		.range([HEIGHT, 0])
 	
-	const r = d3.scaleLinear()
-		.domain([0, getRadius(firstYearPopulationMax)])
-		.range([5, 25])
+	const area = d3.scaleLinear()
+		.domain([2_000, 1_400_000_000])
+		.range([25*Math.PI, 1500*Math.PI])
 
 	const yAxisCall = d3.axisLeft(y)
 		.ticks(5)
@@ -58,7 +58,7 @@ d3.json('data/data.json').then((json) => {
 
 	const xAxisCall = d3.axisBottom(x)
 		.tickValues([400, 4_000, 40_000])
-		.tickFormat(d => d);    
+		.tickFormat(d3.format("$"));
 
 	g.append("g")
 		.attr("class", "xAxis")
@@ -71,7 +71,7 @@ d3.json('data/data.json').then((json) => {
 		.attr('x', (WIDTH/2))
 		.attr('y', HEIGHT + 45)
 		.attr('text-anchor', 'middle')
-		.text("GDP per capita");
+		.text("GDP per capita ($)");
 
 	g.append('text')
 		.attr("class", "yLabel")
@@ -89,6 +89,9 @@ d3.json('data/data.json').then((json) => {
 		.text(json[0].year);
 
 	const update = () => {
+
+		const t = d3.transition()
+		.duration(100)
 		const yearArray = json[counter].countries;
 		const cleanedYearData= yearArray.filter((country) => {
 			return (country.income !== null && country.life_exp !== null)
@@ -109,7 +112,7 @@ d3.json('data/data.json').then((json) => {
 		circles
 			.attr("cx", d => x(d.income))
 			.attr("cy", d => y(d.life_exp))
-			.attr("r", d =>  r(getRadius(d.population)))
+			.attr("r", d =>  Math.sqrt(area(d.population) / Math.PI))
 
 		year
 			.attr("class", "yearLabel")
@@ -124,7 +127,7 @@ d3.json('data/data.json').then((json) => {
 			.attr("class", "dot")
 			.attr("cx", d => x(d.income))
 			.attr("cy", d => y(d.life_exp))
-			.attr("r", d =>  r(getRadius(d.population)))
+			.attr("r", d =>  Math.sqrt(area(d.population) / Math.PI))
 			.style("fill", d =>  colorScale(d.continent))
 		
 		year.enter()
@@ -143,97 +146,7 @@ d3.json('data/data.json').then((json) => {
 		counter++;
 	}
 	
-	const timer = d3.interval(update, 1_000);
+	const timer = d3.interval(update, 100);
 });
 
 const matchKey = item => (item.country === item.country);
-
-
-const getRadius = population => Math.sqrt(population / 3.14);
-
-// area = pi r squared	
-// r = square root (area / pi )
-
-// d3.json("data/data.json").then((data) => {
-// 	data = data.map((year, i) => {
-// 		// console.log(year, i, 'year, i');
-// 		return year.countries = filter(year.countries)
-// 	})
-
-// 	const dots =  g.selectAll("dot").data(data)
-	
-// 	console.log(data[counter].countries, counter)
-// 	// Add dots
-// 	svg.append('g')
-// 		.selectAll("dot")
-// 		.data(data[counter].countries)
-// 		.append("circle")
-// 		.attr("cx", (d) => { return x(d.income); })
-// 		.attr("cy", (d) => { return y(d.life_exp); })
-// 		.attr("r", (d) => { return (d.population / 10_000_000) })
-// 		.style("fill", colorScale(counter))
-
-// 	const update = () => {
-
-// 		counter = counter + 1;
-// 		// JOIN new data with old elements.
-
-// 		const circles = d3.select("g").selectAll("dot")
-// 			.data(data[counter].countries, joinKey)
-
-// 		console.log(circles, 'circles')
-// 		// EXIT old elements not present in new data.
-// 		circles.exit().remove()
-
-// 		// UPDATE old elements present in new data.
-// 		console.log('update');
-// 		circles
-// 			.attr("class", "dot")
-// 			.attr("cx", (d) => { return x(d.income); })
-// 			.attr("cy", (d) => { return y(d.life_exp); })
-// 			.attr("r", (d) => { return r(d.population / 10_000_000) })
-
-// 		// ENTER new elements present in new data.
-// 		console.log('enter', counter);
-// 		circles.enter()
-// 			.append("circle")
-// 			.attr("class", "dot")
-// 			.attr("cx", (d) => { return x(d.income); })
-// 			.attr("cy", (d) => { return y(d.life_exp); })
-// 			.attr("r", (d) => { return (d.population / 10_000_000) })
-// 			.transition(100)
-// 			.style("fill", colorScale(counter))
-
-// 		if (counter > 10) timer.stop();
-// 		if (counter > data.length - 1) {
-// 			counter = 0;
-// 		};
-// 	}
-
-// 	const timer = d3.interval(update, 3000);
-
-// })
-
-// function joinKey(item) {
-// 	return item.population;
-// }
-
-// const yAxisCall = d3.axisLeft(y)
-// 	.ticks(5)
-// 	.tickFormat(d => d)
-
-// g.append('g')
-// 	.attr("class", "y axis")
-// 	.text('X Axis Label')
-// 	.call(yAxisCall)
-
-
-// const xAxisCall = d3.axisBottom(x)
-// 	.tickValues([400, 4000, 40_000])
-// 	.tickFormat(d => d);
-
-// g.append("g")
-// 	.attr("class", "x axis")
-// 	.attr("transform", `translate(0, ${HEIGHT})`)
-// 	.text('X Axis Label')
-// 	.call(xAxisCall)
