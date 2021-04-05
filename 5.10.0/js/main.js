@@ -98,7 +98,7 @@ d3.json('data/data.json').then((json) => {
 		const circles = g.selectAll("circle")
 			.data(cleanedYearData, matchKey)
 
-		const year = g.select('text').classed('yearLabel', true);
+		const year = d3.selectAll('.yearLabel');
 
 		// EXIT
 		circles.exit().remove();
@@ -143,7 +143,7 @@ d3.json('data/data.json').then((json) => {
 		counter++;
 	}
 	
-	const timer = d3.interval(update, 300);
+	const timer = d3.interval(update, 1_000);
 });
 
 const matchKey = item => (item.country === item.country);
