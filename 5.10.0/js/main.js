@@ -9,19 +9,9 @@ const WIDTH = 600 - MARGIN.LEFT - MARGIN.RIGHT;
 const HEIGHT = 400 - MARGIN.TOP - MARGIN.BOTTOM;
 let counter = 0;
 let colors = ["#1192e8", "#ee538b", "#009d9a", "#fa4d56"];
+const continents = ["europe", "asia", "americas", "africa"];
+
 const colorScale = d3.scaleOrdinal(colors);
-//   .range(colors)
-
-
-// start with first year
-
-
-// x-axis = income
-// y-axis = life expectancy
-
-// circle = country
-	// radius = population
-
 
 const svg = d3.select("#chart-area").append("svg")
 	.attr("width", WIDTH + MARGIN.LEFT + MARGIN.RIGHT)
@@ -29,6 +19,26 @@ const svg = d3.select("#chart-area").append("svg")
 
 const g = svg.append("g")
 	.attr("transform", `translate(${MARGIN.LEFT}, ${MARGIN.TOP})`)
+
+	const legend = g.append("g")
+	.attr("transform", 	`translate(${WIDTH - 10}, ${HEIGHT - 125})`)
+
+continents.forEach((continent, i) => {
+	const legendRow = legend.append("g")
+		.attr("transform", `translate(0, ${i * 20})`)
+
+	legendRow.append("rect")
+		.attr("width", 10)
+		.attr("height", 10)
+		.attr("fill", colorScale(continent))
+
+	legendRow.append("text")
+		.attr("x", -10)
+		.attr("y", 10)
+		.attr("text-anchor", "end")
+		.style("text-transform", "capitalize")
+		.text(continent);
+})
 
 d3.json('data/data.json').then((json) => {
 	const firstYearArray = json[0].countries;
