@@ -8,6 +8,8 @@ const MARGIN = { LEFT: 60, RIGHT: 60, TOP: 60, BOTTOM: 60 };
 const WIDTH = 600 - MARGIN.LEFT - MARGIN.RIGHT;
 const HEIGHT = 400 - MARGIN.TOP - MARGIN.BOTTOM;
 let counter = 0;
+let interval;
+let formattedData;
 let colors = ["#1192e8", "#ee538b", "#009d9a", "#fa4d56"];
 const continents = ["europe", "asia", "americas", "africa"];
 
@@ -40,26 +42,27 @@ continents.forEach((continent, i) => {
 		.text(continent);
 })
 
+const x = d3.scaleLog()
+.domain([142, 150000])
+.range([0, WIDTH])
+
+const y = d3.scaleLinear()
+.domain([0, 90])
+.range([HEIGHT, 0])
+
+const area = d3.scaleLinear()
+.domain([2_000, 1_400_000_000])
+.range([25*Math.PI, 1500*Math.PI])
+
+const yAxisCall = d3.axisLeft(y)
+.ticks(5)
+.tickFormat(d => d)
+
 d3.json('data/data.json').then((json) => {
+	formattedData = json;
 	const firstYearArray = json[0].countries;
 	const firstYearPopulations = firstYearArray.map(d => d.population);
 	const firstYearPopulationMax = d3.max(firstYearPopulations);
-
-	const x = d3.scaleLog()
-		.domain([142, 150000])
-		.range([0, WIDTH])
-	
-	const y = d3.scaleLinear()
-		.domain([0, 90])
-		.range([HEIGHT, 0])
-	
-	const area = d3.scaleLinear()
-		.domain([2_000, 1_400_000_000])
-		.range([25*Math.PI, 1500*Math.PI])
-
-	const yAxisCall = d3.axisLeft(y)
-		.ticks(5)
-		.tickFormat(d => d)
 
 	g.append('g')
 		.attr("class", "yAxis")
@@ -97,66 +100,115 @@ d3.json('data/data.json').then((json) => {
 		.attr('y', HEIGHT + 45)
 		.attr('text-anchor', 'end')
 		.text(json[0].year);
-
-	const update = () => {
-
-		const t = d3.transition()
-		.duration(100)
-		const yearArray = json[counter].countries;
-		const cleanedYearData= yearArray.filter((country) => {
-			return (country.income !== null && country.life_exp !== null)
-		});
-
-		// JOIN
-		const circles = g.selectAll("circle")
-			.data(cleanedYearData, matchKey)
-
-		const year = d3.selectAll('.yearLabel');
-
-		// EXIT
-		circles.exit().remove();
-
-		year.exit().remove();
-
-		// UPDATE
-		circles
-			.attr("cx", d => x(d.income))
-			.attr("cy", d => y(d.life_exp))
-			.attr("r", d =>  Math.sqrt(area(d.population) / Math.PI))
-
-		year
-			.attr("class", "yearLabel")
-			.attr('x', (WIDTH))
-			.attr('y', HEIGHT + 45)
-			.attr('text-anchor', 'end')
-			.text(json[counter].year)
-
-		// ENTER
-		circles.enter()
-			.append("circle")
-			.attr("class", "dot")
-			.attr("cx", d => x(d.income))
-			.attr("cy", d => y(d.life_exp))
-			.attr("r", d =>  Math.sqrt(area(d.population) / Math.PI))
-			.style("fill", d =>  colorScale(d.continent))
-		
-		year.enter()
-			.attr("class", "yearLabel")
-			.attr('x', (WIDTH))
-			.attr('y', HEIGHT + 45)
-			.attr('text-anchor', 'end')
-			.text(json[0].year);
-
-
-		// if (counter > 10) timer.stop();
-		if (counter >= json.length - 1) {
-			counter = 0;
-		};
-
-		counter++;
-	}
 	
-	const timer = d3.interval(update, 100);
+	// const timer = d3.interval(update, 100);
 });
+
+const update = (json) => {
+
+	const continent = $("#continent-select").val();
+
+	const t = d3.transition()
+	.duration(100)
+	const yearArray = json[counter].countries;
+	let cleanedYearData= yearArray.filter((country) => {
+		return (country.income !== null && country.life_exp !== null)
+	});
+
+	cleanedYearData = cleanedYearData.filter(d => {
+		if (continent === 'all') {
+			return true
+		} else {
+			return d.continent === continent;
+		}
+	})
+
+	// JOIN
+	const circles = g.selectAll("circle")
+		.data(cleanedYearData, matchKey)
+
+	const year = d3.selectAll('.yearLabel');
+
+	// EXIT
+	circles.exit().remove();
+
+	year.exit().remove();
+
+	// UPDATE
+	circles
+		.attr("cx", d => x(d.income))
+		.attr("cy", d => y(d.life_exp))
+		.attr("r", d =>  Math.sqrt(area(d.population) / Math.PI))
+
+	year
+		.attr("class", "yearLabel")
+		.attr('x', (WIDTH))
+		.attr('y', HEIGHT + 45)
+		.attr('text-anchor', 'end')
+		.text(json[counter].year)
+
+	// ENTER
+	circles.enter()
+		.append("circle")
+		.attr("class", "dot")
+		.attr("cx", d => x(d.income))
+		.attr("cy", d => y(d.life_exp))
+		.attr("r", d =>  Math.sqrt(area(d.population) / Math.PI))
+		.style("fill", d =>  colorScale(d.continent))
+	
+	year.enter()
+		.attr("class", "yearLabel")
+		.attr('x', (WIDTH))
+		.attr('y', HEIGHT + 45)
+		.attr('text-anchor', 'end')
+		.text(json[0].year);
+
+
+	// if (counter > 10) timer.stop();
+	if (counter >= json.length - 1) {
+		counter = 0;
+	};
+
+	counter++;
+	$("#year")[0].innerHTML = String(counter + 1800);
+	$("#date-slider").slider("value", Number(counter + 1800))
+}
+
+function step() {
+	counter = (counter < 214) ? counter + 1 : 0
+	update(formattedData);
+}
+
+$("#play-button")
+	.on("click", function() {
+		const button = $(this);
+		if (button.text() === "Play") {
+			button.text("Pause");
+			interval = setInterval(step, 100)
+		} else {
+			button.text("Play")
+			clearInterval(interval)
+		}
+	})
+
+$("#reset-button")
+	.on("click", function(){
+		counter = 0;
+		update(formattedData)
+	})
+
+$("#continent-select")
+	.on("change", () => {
+		update(formattedData);
+	})
+
+	$("#date-slider").slider({
+		min: 1800,
+		max: 2014,
+		step: 1,
+		slide: (event, ui) => {
+			counter = ui.value - 1800
+		}
+	})
 
 const matchKey = item => (item.country === item.country);
