@@ -52,6 +52,7 @@
 }
 
 .line {
+  fill: none;
   stroke-width: 3px;
-  stroke: blue;
+  stroke: grey;
 }

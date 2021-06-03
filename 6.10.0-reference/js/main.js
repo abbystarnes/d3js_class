@@ -1,6 +1,6 @@
 /*
 *    main.js
-*    Mastering bitcoin Visualization with D3.js
+*    Mastering Data Visualization with D3.js
 *    Project 3 - CoinStats
 */
 		
@@ -16,7 +16,7 @@ const g = svg.append("g")
   .attr("transform", `translate(${MARGIN.LEFT}, ${MARGIN.TOP})`)
 
 // time parser for x-scale
-const parseTime = d3.timeParse("%d/%m/%Y")
+const parseTime = d3.timeParse("%Y")
 // for tooltip
 const bisectDate = d3.bisector(d => d.year).left
 
@@ -52,43 +52,31 @@ const line = d3.line()
 	.x(d => x(d.year))
 	.y(d => y(d.value))
 
-d3.json("data/coins.json").then(data => {
-	let { bitcoin, ethereum, bitcoin_cash, litecoin, ripple } = data;
-
-	const clean = (coin => ({ volume: parseFloat(coin['24h_vol']), year: coin.date, marketCap: parseFloat(coin.market_cap), value: parseFloat(coin.price_usd) }));
-
-	bitcoin = bitcoin.map(item => clean(item));
-	ethereum = ethereum.map(item => clean(item));
-	bitcoin_cash = bitcoin_cash.map(item => clean(item));
-	litecoin = litecoin.map(item => clean(item));
-	ripple = ripple.map(item => clean(item));
-
-	// clean bitcoin
-	bitcoin.forEach(d => {
+d3.json("data/example.json").then(data => {
+	// clean data
+	data.forEach(d => {
 		d.year = parseTime(d.year)
-		d.value = d.value
+		d.value = Number(d.value)
 	})
 
 	// set scale domains
-	x.domain(d3.extent(bitcoin, d => d.year))
+	x.domain(d3.extent(data, d => d.year))
 	y.domain([
-		d3.min(bitcoin, d => d.value) / 1.005, 
-		d3.max(bitcoin, d => d.value) * 1.005
+		d3.min(data, d => d.value) / 1.005, 
+		d3.max(data, d => d.value) * 1.005
 	])
 
 	// generate axes once scales have been set
 	xAxis.call(xAxisCall.scale(x))
 	yAxis.call(yAxisCall.scale(y))
-	let result = bitcoin.filter(bit => !Number.isNaN(bit.value));
-	result = result.map(coin => ({year: coin.year, value: coin.value}));
 
-
+	// add line to chart
 	g.append("path")
 		.attr("class", "line")
 		.attr("fill", "none")
 		.attr("stroke", "grey")
 		.attr("stroke-width", "3px")
-		.attr("d", line(result))
+		.attr("d", line(data))
 
 	/******************************** Tooltip Code ********************************/
 
@@ -123,9 +111,9 @@ d3.json("data/coins.json").then(data => {
 
 	function mousemove() {
 		const x0 = x.invert(d3.mouse(this)[0])
-		const i = bisectDate(bitcoin, x0, 1)
-		const d0 = bitcoin[i - 1]
-		const d1 = bitcoin[i]
+		const i = bisectDate(data, x0, 1)
+		const d0 = data[i - 1]
+		const d1 = data[i]
 		const d = x0 - d0.year > d1.year - x0 ? d1 : d0
 		focus.attr("transform", `translate(${x(d.year)}, ${y(d.value)})`)
 		focus.select("text").text(d.value)
